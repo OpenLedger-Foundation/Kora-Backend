@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { CreateInvoiceDto, MintInvoiceDto, UpdateInvoiceDto } from './dto/invoice.dto';
 import { Invoice } from './entities/invoice.entity';
 import { InvoiceStatus, RiskTier, PaginatedResult } from '../common/types';
@@ -79,5 +79,14 @@ export class InvoiceService {
     invoice.updatedAt = new Date();
     store.set(id, invoice);
     return invoice;
+  }
+
+  delete(id: string, walletAddress: string): void {
+    const invoice = this.findOne(id);
+    if (invoice.issuerWallet !== walletAddress) throw new ForbiddenException();
+    if (invoice.status !== InvoiceStatus.PENDING) {
+      throw new BadRequestException('Only PENDING invoices can be deleted');
+    }
+    store.delete(id);
   }
 }

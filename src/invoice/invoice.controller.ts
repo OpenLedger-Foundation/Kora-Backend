@@ -1,6 +1,6 @@
 import {
-  Controller, Get, Post, Patch, Body, Param, Query,
-  UseGuards, Request, DefaultValuePipe, ParseIntPipe,
+  Controller, Get, Post, Patch, Delete, Body, Param, Query,
+  UseGuards, Request, DefaultValuePipe, ParseIntPipe, HttpCode, HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -59,5 +59,14 @@ export class InvoiceController {
   @Post('mint')
   recordMint(@Body() dto: MintInvoiceDto) {
     return this.invoiceService.recordMint(dto);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Delete a PENDING invoice (owner only)' })
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @Delete(':id')
+  delete(@Param('id') id: string, @Request() req: any) {
+    this.invoiceService.delete(id, req.user.walletAddress);
   }
 }
