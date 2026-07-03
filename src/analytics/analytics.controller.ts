@@ -19,4 +19,10 @@ export class AnalyticsController {
   risk() {
     return this.analyticsService.getRiskDistribution();
   }
+
+  @ApiOperation({ summary: 'Invoice volume and count broken down by category' })
+  @Get('categories')
+  categories() {
+    return this.analyticsService.getCategoryBreakdown();
+  }
 }

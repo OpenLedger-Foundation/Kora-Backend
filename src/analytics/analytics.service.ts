@@ -42,4 +42,15 @@ export class AnalyticsService {
     const totalYield = positions.reduce((s, p) => s + p.expectedYield, 0);
     return { walletAddress, totalInvested, totalExpectedYield: totalYield, positions: positions.length };
   }
+
+  getCategoryBreakdown() {
+    const { data } = this.invoiceService.findAll(1, 9999);
+    const breakdown: Record<string, { count: number; totalVolume: number }> = {};
+    for (const invoice of data) {
+      if (!breakdown[invoice.category]) breakdown[invoice.category] = { count: 0, totalVolume: 0 };
+      breakdown[invoice.category].count++;
+      breakdown[invoice.category].totalVolume += invoice.amount;
+    }
+    return Object.entries(breakdown).map(([category, stats]) => ({ category, ...stats }));
+  }
 }
