@@ -22,6 +22,10 @@ export class AnalyticsService {
       activeInvoices,
       repaidInvoices: repaid,
       defaultedInvoices: data.filter((i) => i.status === InvoiceStatus.DEFAULTED).length,
+      averageDiscountRate: data.length
+        ? data.reduce((s, i) => s + i.discountRate, 0) / data.length
+        : 0,
+      utilizationRate: totalVolume > 0 ? (totalFunded / totalVolume) * 100 : 0,
     };
   }
 
