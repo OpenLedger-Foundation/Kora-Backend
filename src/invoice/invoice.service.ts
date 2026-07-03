@@ -90,4 +90,16 @@ export class InvoiceService {
     }
     store.delete(id);
   }
+
+  repay(id: string, walletAddress: string): Invoice {
+    const invoice = this.findOne(id);
+    if (invoice.issuerWallet !== walletAddress) throw new ForbiddenException();
+    if (invoice.status !== InvoiceStatus.FULLY_FUNDED) {
+      throw new BadRequestException('Only FULLY_FUNDED invoices can be repaid');
+    }
+    invoice.status = InvoiceStatus.REPAID;
+    invoice.updatedAt = new Date();
+    store.set(id, invoice);
+    return invoice;
+  }
 }

@@ -69,4 +69,12 @@ export class InvoiceController {
   delete(@Param('id') id: string, @Request() req: any) {
     this.invoiceService.delete(id, req.user.walletAddress);
   }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Mark a FULLY_FUNDED invoice as repaid (owner only)' })
+  @Post(':id/repay')
+  repay(@Param('id') id: string, @Request() req: any) {
+    return this.invoiceService.repay(id, req.user.walletAddress);
+  }
 }
