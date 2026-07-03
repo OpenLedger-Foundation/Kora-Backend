@@ -13,6 +13,8 @@ export class FilterInvoicesDto {
   @ApiPropertyOptional() @IsOptional() @IsString() jurisdiction?: string;
   @ApiPropertyOptional() @IsOptional() @IsNumber() minApr?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() maxApr?: number;
+  @ApiPropertyOptional({ description: 'Minimum invoice face value (USD)' }) @IsOptional() @IsNumber() minAmount?: number;
+  @ApiPropertyOptional({ description: 'Maximum invoice face value (USD)' }) @IsOptional() @IsNumber() maxAmount?: number;
   @ApiPropertyOptional({ description: 'Field to sort by', enum: ['amount', 'discountRate', 'dueDate', 'createdAt'] })
   @IsOptional() @IsIn(['amount', 'discountRate', 'dueDate', 'createdAt']) sortBy?: string;
   @ApiPropertyOptional({ description: 'Sort direction', enum: ['asc', 'desc'] })

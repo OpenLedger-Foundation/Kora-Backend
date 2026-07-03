@@ -22,6 +22,8 @@ export class MarketplaceService {
     if (filters.jurisdiction) listed = listed.filter((i) => i.jurisdiction === filters.jurisdiction);
     if (filters.minApr != null) listed = listed.filter((i) => i.discountRate >= filters.minApr!);
     if (filters.maxApr != null) listed = listed.filter((i) => i.discountRate <= filters.maxApr!);
+    if (filters.minAmount != null) listed = listed.filter((i) => i.amount >= filters.minAmount!);
+    if (filters.maxAmount != null) listed = listed.filter((i) => i.amount <= filters.maxAmount!);
 
     if (filters.sortBy) {
       const field = filters.sortBy as keyof typeof listed[0];
