@@ -11,10 +11,18 @@ const nonceStore = new Map<string, { nonce: string; expiresAt: number }>();
 export class AuthService {
   constructor(private readonly jwtService: JwtService) {}
 
+  private purgeExpiredNonces(): void {
+    const now = Date.now();
+    for (const [key, val] of nonceStore.entries()) {
+      if (now > val.expiresAt) nonceStore.delete(key);
+    }
+  }
+
   getChallenge(walletAddress: string) {
     if (!StrKey.isValidEd25519PublicKey(walletAddress)) {
       throw new UnauthorizedException('Invalid Stellar public key');
     }
+    this.purgeExpiredNonces();
     const nonce = Buffer.from(crypto.getRandomValues(new Uint8Array(32))).toString('hex');
     nonceStore.set(walletAddress, { nonce, expiresAt: Date.now() + 5 * 60 * 1000 });
     return { nonce, message: `Sign this nonce to authenticate with Kora Protocol: ${nonce}` };
