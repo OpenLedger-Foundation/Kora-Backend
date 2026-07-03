@@ -62,6 +62,7 @@ export class InvoiceService {
     const invoice = this.findOne(dto.invoiceId);
     invoice.pdfCid = dto.pdfCid;
     invoice.metadataCid = dto.metadataCid;
+    invoice.tokenId = dto.tokenId;
     invoice.status = InvoiceStatus.LISTED;
     invoice.updatedAt = new Date();
     store.set(invoice.id, invoice);

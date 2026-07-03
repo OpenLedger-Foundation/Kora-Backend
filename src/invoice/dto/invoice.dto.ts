@@ -30,4 +30,5 @@ export class MintInvoiceDto {
   @ApiProperty() @IsString() invoiceId: string;
   @ApiProperty({ description: 'IPFS CID of invoice PDF' }) @IsString() pdfCid: string;
   @ApiProperty({ description: 'IPFS CID of metadata JSON' }) @IsString() metadataCid: string;
+  @ApiProperty({ description: 'Soroban NFT token ID assigned after minting' }) @IsString() tokenId: string;
 }
