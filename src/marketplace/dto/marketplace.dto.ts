@@ -1,4 +1,4 @@
-import { IsString, IsNumber, IsOptional, IsEnum, IsPositive } from 'class-validator';
+import { IsString, IsNumber, IsOptional, IsEnum, IsPositive, IsIn } from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { InvoiceCategory, RiskTier } from '../../common/types';
 
@@ -13,4 +13,8 @@ export class FilterInvoicesDto {
   @ApiPropertyOptional() @IsOptional() @IsString() jurisdiction?: string;
   @ApiPropertyOptional() @IsOptional() @IsNumber() minApr?: number;
   @ApiPropertyOptional() @IsOptional() @IsNumber() maxApr?: number;
+  @ApiPropertyOptional({ description: 'Field to sort by', enum: ['amount', 'discountRate', 'dueDate', 'createdAt'] })
+  @IsOptional() @IsIn(['amount', 'discountRate', 'dueDate', 'createdAt']) sortBy?: string;
+  @ApiPropertyOptional({ description: 'Sort direction', enum: ['asc', 'desc'] })
+  @IsOptional() @IsIn(['asc', 'desc']) sortOrder?: 'asc' | 'desc';
 }

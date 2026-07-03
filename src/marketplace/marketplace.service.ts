@@ -23,6 +23,16 @@ export class MarketplaceService {
     if (filters.minApr != null) listed = listed.filter((i) => i.discountRate >= filters.minApr!);
     if (filters.maxApr != null) listed = listed.filter((i) => i.discountRate <= filters.maxApr!);
 
+    if (filters.sortBy) {
+      const field = filters.sortBy as keyof typeof listed[0];
+      const dir = filters.sortOrder === 'desc' ? -1 : 1;
+      listed.sort((a, b) => {
+        const av = a[field] as any;
+        const bv = b[field] as any;
+        return av < bv ? -dir : av > bv ? dir : 0;
+      });
+    }
+
     const start = (page - 1) * limit;
     return { data: listed.slice(start, start + limit), total: listed.length, page, limit };
   }
