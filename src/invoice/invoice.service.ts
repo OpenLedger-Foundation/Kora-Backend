@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, ForbiddenException, BadRequestException 
 import { CreateInvoiceDto, MintInvoiceDto, UpdateInvoiceDto } from './dto/invoice.dto';
 import { Invoice } from './entities/invoice.entity';
 import { InvoiceStatus, RiskTier, PaginatedResult } from '../common/types';
+import { InvoiceNotFoundException } from '../common/exceptions/invoice-not-found.exception';
 import { v4 as uuid } from 'crypto';
 
 // In-memory store — replace with DB (Postgres / PrismaService) in production
@@ -46,7 +47,7 @@ export class InvoiceService {
 
   findOne(id: string): Invoice {
     const invoice = store.get(id);
-    if (!invoice) throw new NotFoundException(`Invoice ${id} not found`);
+    if (!invoice) throw new InvoiceNotFoundException(id);
     return invoice;
   }
 
