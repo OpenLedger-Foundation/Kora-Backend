@@ -19,6 +19,8 @@ export enum InvoiceCategory {
   CONSTRUCTION = 'construction',
   TECHNOLOGY = 'technology',
   AGRICULTURE = 'agriculture',
+  HEALTHCARE = 'healthcare',
+  ENERGY = 'energy',
   OTHER = 'other',
 }
 
