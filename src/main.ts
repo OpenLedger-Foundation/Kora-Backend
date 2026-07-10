@@ -1,28 +1,28 @@
 import { NestFactory } from '@nestjs/core';
-import { ValidationPipe } from '@nestjs/common';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
+import { KoraValidationPipe } from './common/pipes/validation.pipe';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   const config = app.get(ConfigService);
 
-  // Security
+  // Security headers
   app.use(helmet());
   app.enableCors({
     origin: config.get<string>('CORS_ORIGINS', 'http://localhost:3000').split(','),
     credentials: true,
   });
 
-  // Global validation
-  app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
+  // Global validation — uses KoraValidationPipe for structured error details
+  app.useGlobalPipes(new KoraValidationPipe());
 
-  // API prefix
+  // API versioning prefix
   app.setGlobalPrefix('api/v1');
 
-  // Swagger
+  // Swagger / OpenAPI docs
   const swaggerConfig = new DocumentBuilder()
     .setTitle('Kora Protocol API')
     .setDescription('Backend API for Kora — decentralized invoice financing on Stellar Soroban')
