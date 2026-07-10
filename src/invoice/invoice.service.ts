@@ -14,6 +14,14 @@ function calcRisk(amount: number, discountRate: number): { tier: RiskTier; score
   return { tier: RiskTier.LOW, score: 25 };
 }
 
+export interface InvoiceSearchOptions {
+  keyword?: string;
+  status?: InvoiceStatus;
+  riskTier?: RiskTier;
+  page?: number;
+  limit?: number;
+}
+
 @Injectable()
 export class InvoiceService {
   create(walletAddress: string, dto: CreateInvoiceDto): Invoice {
@@ -39,6 +47,50 @@ export class InvoiceService {
     const all = [...store.values()];
     const start = (page - 1) * limit;
     return { data: all.slice(start, start + limit), total: all.length, page, limit };
+  }
+
+  /**
+   * Full-text keyword search across invoice fields:
+   * invoiceNumber, issuerName, debtorName, description, jurisdiction, category.
+   * Optionally filter by status and/or riskTier, with pagination.
+   */
+  search(options: InvoiceSearchOptions): PaginatedResult<Invoice> {
+    const { keyword, status, riskTier, page = 1, limit = 20 } = options;
+    let results = [...store.values()];
+
+    if (keyword) {
+      const q = keyword.toLowerCase().trim();
+      results = results.filter((inv) =>
+        [
+          inv.invoiceNumber,
+          inv.issuerName,
+          inv.debtorName,
+          inv.description,
+          inv.jurisdiction,
+          inv.category,
+        ]
+          .filter(Boolean)
+          .some((field) => field.toLowerCase().includes(q)),
+      );
+    }
+
+    if (status) {
+      results = results.filter((inv) => inv.status === status);
+    }
+
+    if (riskTier) {
+      results = results.filter((inv) => inv.riskTier === riskTier);
+    }
+
+    const total = results.length;
+    const start = (page - 1) * limit;
+
+    return {
+      data: results.slice(start, start + limit),
+      total,
+      page,
+      limit,
+    };
   }
 
   findByWallet(walletAddress: string): Invoice[] {
@@ -98,6 +150,21 @@ export class InvoiceService {
       throw new BadRequestException('Only FULLY_FUNDED invoices can be repaid');
     }
     invoice.status = InvoiceStatus.REPAID;
+    invoice.updatedAt = new Date();
+    store.set(id, invoice);
+    return invoice;
+  }
+
+  markDefaulted(id: string): Invoice {
+    const invoice = this.findOne(id);
+    if (
+      invoice.status !== InvoiceStatus.LISTED &&
+      invoice.status !== InvoiceStatus.PARTIALLY_FUNDED &&
+      invoice.status !== InvoiceStatus.FULLY_FUNDED
+    ) {
+      throw new BadRequestException('Invoice cannot be marked as defaulted in its current status');
+    }
+    invoice.status = InvoiceStatus.DEFAULTED;
     invoice.updatedAt = new Date();
     store.set(id, invoice);
     return invoice;

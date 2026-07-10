@@ -6,6 +6,7 @@ import { ApiTags, ApiBearerAuth, ApiOperation, ApiQuery } from '@nestjs/swagger'
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { InvoiceService } from './invoice.service';
 import { CreateInvoiceDto, MintInvoiceDto, UpdateInvoiceDto } from './dto/invoice.dto';
+import { InvoiceStatus, RiskTier } from '../common/types';
 
 @ApiTags('invoices')
 @Controller('invoices')
@@ -21,6 +22,23 @@ export class InvoiceController {
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
   ) {
     return this.invoiceService.findAll(page, limit);
+  }
+
+  @ApiOperation({ summary: 'Search invoices by keyword, status, or risk tier' })
+  @ApiQuery({ name: 'q', required: false, description: 'Full-text keyword (searches invoiceNumber, issuerName, debtorName, description, jurisdiction, category)' })
+  @ApiQuery({ name: 'status', required: false, enum: InvoiceStatus })
+  @ApiQuery({ name: 'riskTier', required: false, enum: RiskTier })
+  @ApiQuery({ name: 'page', required: false })
+  @ApiQuery({ name: 'limit', required: false })
+  @Get('search')
+  search(
+    @Query('q') keyword?: string,
+    @Query('status') status?: InvoiceStatus,
+    @Query('riskTier') riskTier?: RiskTier,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit?: number,
+  ) {
+    return this.invoiceService.search({ keyword, status, riskTier, page, limit });
   }
 
   @ApiBearerAuth()
@@ -76,5 +94,13 @@ export class InvoiceController {
   @Post(':id/repay')
   repay(@Param('id') id: string, @Request() req: any) {
     return this.invoiceService.repay(id, req.user.walletAddress);
+  }
+
+  @ApiBearerAuth()
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Mark an invoice as defaulted (admin use)' })
+  @Post(':id/default')
+  markDefaulted(@Param('id') id: string) {
+    return this.invoiceService.markDefaulted(id);
   }
 }
