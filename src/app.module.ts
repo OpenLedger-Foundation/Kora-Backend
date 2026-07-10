@@ -9,6 +9,7 @@ import { IpfsModule } from './ipfs/ipfs.module';
 import { StellarModule } from './stellar/stellar.module';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { LoggerMiddleware } from './common/middleware/logger.middleware';
+import { HealthModule } from './health/health.module';
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { LoggerMiddleware } from './common/middleware/logger.middleware';
     IpfsModule,
     StellarModule,
     AnalyticsModule,
+    HealthModule,
   ],
   providers: [
     {
