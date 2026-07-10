@@ -1,9 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException, BadRequestException } from '@nestjs/common';
+import { Injectable, ForbiddenException, BadRequestException } from '@nestjs/common';
 import { CreateInvoiceDto, MintInvoiceDto, UpdateInvoiceDto } from './dto/invoice.dto';
 import { Invoice } from './entities/invoice.entity';
-import { InvoiceStatus, RiskTier, PaginatedResult } from '../common/types';
+import { InvoiceStatus, RiskTier, PaginatedResult, paginate } from '../common/types';
 import { InvoiceNotFoundException } from '../common/exceptions/invoice-not-found.exception';
-import { v4 as uuid } from 'crypto';
 
 // In-memory store — replace with DB (Postgres / PrismaService) in production
 const store = new Map<string, Invoice>();
@@ -44,15 +43,13 @@ export class InvoiceService {
   }
 
   findAll(page = 1, limit = 20): PaginatedResult<Invoice> {
-    const all = [...store.values()];
-    const start = (page - 1) * limit;
-    return { data: all.slice(start, start + limit), total: all.length, page, limit };
+    return paginate([...store.values()], page, limit);
   }
 
   /**
    * Full-text keyword search across invoice fields:
    * invoiceNumber, issuerName, debtorName, description, jurisdiction, category.
-   * Optionally filter by status and/or riskTier, with pagination.
+   * Optionally filter by status and/or riskTier, with full pagination metadata.
    */
   search(options: InvoiceSearchOptions): PaginatedResult<Invoice> {
     const { keyword, status, riskTier, page = 1, limit = 20 } = options;
@@ -74,23 +71,10 @@ export class InvoiceService {
       );
     }
 
-    if (status) {
-      results = results.filter((inv) => inv.status === status);
-    }
+    if (status) results = results.filter((inv) => inv.status === status);
+    if (riskTier) results = results.filter((inv) => inv.riskTier === riskTier);
 
-    if (riskTier) {
-      results = results.filter((inv) => inv.riskTier === riskTier);
-    }
-
-    const total = results.length;
-    const start = (page - 1) * limit;
-
-    return {
-      data: results.slice(start, start + limit),
-      total,
-      page,
-      limit,
-    };
+    return paginate(results, page, limit);
   }
 
   findByWallet(walletAddress: string): Invoice[] {

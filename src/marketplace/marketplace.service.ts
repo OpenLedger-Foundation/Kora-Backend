@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { InvoiceService } from '../invoice/invoice.service';
 import { FilterInvoicesDto, FundInvoiceDto } from './dto/marketplace.dto';
 import { Invoice } from '../invoice/entities/invoice.entity';
-import { InvoiceStatus } from '../common/types';
+import { InvoiceStatus, paginate } from '../common/types';
 
-// Position: investor → invoiceId → amount
+// Position: investor wallet → invoiceId → amount funded
 const positions = new Map<string, Map<string, number>>();
 
 @Injectable()
@@ -12,7 +12,7 @@ export class MarketplaceService {
   constructor(private readonly invoiceService: InvoiceService) {}
 
   getListings(filters: FilterInvoicesDto, page = 1, limit = 20) {
-    const { data, total } = this.invoiceService.findAll(1, 9999);
+    const { data } = this.invoiceService.findAll(1, 9999);
     let listed = data.filter(
       (i) => i.status === InvoiceStatus.LISTED || i.status === InvoiceStatus.PARTIALLY_FUNDED,
     );
@@ -26,7 +26,7 @@ export class MarketplaceService {
     if (filters.maxAmount != null) listed = listed.filter((i) => i.amount <= filters.maxAmount!);
 
     if (filters.sortBy) {
-      const field = filters.sortBy as keyof typeof listed[0];
+      const field = filters.sortBy as keyof (typeof listed)[0];
       const dir = filters.sortOrder === 'desc' ? -1 : 1;
       listed.sort((a, b) => {
         const av = a[field] as any;
@@ -35,8 +35,7 @@ export class MarketplaceService {
       });
     }
 
-    const start = (page - 1) * limit;
-    return { data: listed.slice(start, start + limit), total: listed.length, page, limit };
+    return paginate(listed, page, limit);
   }
 
   fund(walletAddress: string, dto: FundInvoiceDto): Invoice {
